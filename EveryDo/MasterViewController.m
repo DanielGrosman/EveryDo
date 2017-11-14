@@ -16,7 +16,7 @@
 
 
 @property (strong, nonatomic) NSMutableArray<ToDoItem *> *todoItems;
-@property NSMutableArray *objects;
+@property (strong, nonatomic) NSMutableArray<ToDoItem *> *completedItems;
 
 @end
 
@@ -28,10 +28,18 @@
         [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Finish Assignment" todoDescription:@"Complete the EveryDo Assignment for LHL" priorityNumber:1 deadline:[NSDate dateWithTimeInterval:604800 sinceDate:[NSDate date]] isCompleted:NO]];
         [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Run Errands" todoDescription:@"Go to the Grocery Store" priorityNumber:2 deadline:[NSDate dateWithTimeInterval:1209600 sinceDate:[NSDate date]] isCompleted:NO]];
         [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Clean Up Apartment" todoDescription:@"Wash Dishes and Fold Laundry" priorityNumber:3 deadline:[NSDate dateWithTimeInterval:809650 sinceDate:[NSDate date]] isCompleted:NO]];
-                [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Play Video Games" todoDescription:@"Play Call of Duty and NBA 2k18" priorityNumber:4 deadline:[NSDate dateWithTimeInterval:200000 sinceDate:[NSDate date]] isCompleted:YES]];
+        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Play Video Games" todoDescription:@"Play Call of Duty and NBA 2k18" priorityNumber:4 deadline:[NSDate dateWithTimeInterval:200000 sinceDate:[NSDate date]] isCompleted:NO]];
     }
     return _todoItems;
 }
+
+- (NSMutableArray<ToDoItem *> *)completedItems {
+    if (_completedItems == nil) {
+        _completedItems = [[NSMutableArray alloc] init];
+    }
+    return _completedItems;
+}
+
 
 
 - (void)viewDidLoad {
@@ -50,6 +58,11 @@
     ToDoItem *todoItem = self.todoItems[indexPath.row];
     
     todoItem.isCompleted = YES;
+    todoItem.priorityNumber = 0;
+    
+    [self.todoItems removeObject:todoItem];
+    [self.completedItems addObject:todoItem];
+    
     [self.tableView reloadData];
 }
 
@@ -87,32 +100,54 @@
 #pragma mark - Table View
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return 2;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    NSString *sectionName;
+    switch (section)
+    {
+        case 0:
+            sectionName = @"Outstanding Tasks";
+            break;
+        case 1:
+            sectionName = @"Completed Tasks";
+            break;
+    }
+    return sectionName;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.todoItems.count;
+    if (section==0){
+        return self.todoItems.count;
+    } else {
+        return self.completedItems.count;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     CustomTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
-    ToDoItem *todoItem = self.todoItems[indexPath.row];
-    if (todoItem.isCompleted) {
+    
+    if (indexPath.section==1) {
+        ToDoItem *completedItem = self.completedItems[indexPath.row];
         NSDictionary* attributes = @{NSStrikethroughStyleAttributeName: [NSNumber numberWithInt:NSUnderlineStyleSingle]};
-        NSAttributedString* attributedTitleString = [[NSAttributedString alloc] initWithString:todoItem.title attributes:attributes];
-        NSAttributedString* attributedDescriptionString = [[NSAttributedString alloc] initWithString:todoItem.todoDescription attributes:attributes];
+        NSAttributedString* attributedTitleString = [[NSAttributedString alloc] initWithString:completedItem.title attributes:attributes];
+        NSAttributedString* attributedDescriptionString = [[NSAttributedString alloc] initWithString:completedItem.todoDescription attributes:attributes];
         cell.titleLabel.attributedText = attributedTitleString;
         cell.titleLabel.textColor = [UIColor redColor];
         cell.descriptionLabel.attributedText = attributedDescriptionString;
         cell.descriptionLabel.textColor = [UIColor redColor];
-        cell.priorityLabel.text = [NSString stringWithFormat:@"%ld",todoItem.priorityNumber];
+        cell.priorityLabel.text = [NSString stringWithFormat:@"%ld",completedItem.priorityNumber];
         
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setDateFormat:@"yyyy-MM-dd"];
-        NSString *date = [dateFormatter stringFromDate:todoItem.deadline];
+        NSString *date = [dateFormatter stringFromDate:completedItem.deadline];
         cell.dueDateLabel.text = [NSString stringWithFormat:@"Deadline: %@", date];
-    } else {
+    }
+    if (indexPath.section==0) {
+            ToDoItem *todoItem = self.todoItems[indexPath.row];
         cell.titleLabel.text = todoItem.title;
         cell.titleLabel.textColor = [UIColor blackColor];
         cell.descriptionLabel.text = todoItem.todoDescription;
@@ -124,8 +159,10 @@
         NSString *date = [dateFormatter stringFromDate:todoItem.deadline];
         cell.dueDateLabel.text = [NSString stringWithFormat:@"Deadline: %@", date];
     }
+    
     return cell;
 }
+
 
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

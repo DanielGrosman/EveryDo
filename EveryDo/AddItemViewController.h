@@ -21,5 +21,6 @@
 @property (strong, nonatomic) IBOutlet UITextField *descTextField;
 @property (strong, nonatomic) IBOutlet UITextField *priorityTextField;
 @property (strong, nonatomic) IBOutlet UIButton *doneButton;
+@property (strong, nonatomic) IBOutlet UIDatePicker *datePicker;
 
 @end
