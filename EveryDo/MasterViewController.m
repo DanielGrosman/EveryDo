@@ -37,8 +37,20 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
-    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewItem:)];
+    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(saveNewItem:)];
     self.navigationItem.rightBarButtonItem = addButton;
+    
+    UISwipeGestureRecognizer *swipeCompleted = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(itemWasSwiped:)];
+    [self.tableView addGestureRecognizer:swipeCompleted];
+}
+
+-(void) itemWasSwiped: (UISwipeGestureRecognizer *) sender {
+    CGPoint location = [sender locationInView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:location];
+    ToDoItem *todoItem = self.todoItems[indexPath.row];
+    
+    todoItem.isCompleted = YES;
+    [self.tableView reloadData];
 }
 
 - (void)addNew:(ToDoItem *)newToDo {
@@ -52,14 +64,8 @@
 }
 
 
-- (void)insertNewItem:(id)sender {
+- (void)saveNewItem:(id)sender {
     [self performSegueWithIdentifier:@"AddToDo" sender:self];
-//    if (!self.todoItems) {
-//        self.todoItems = [[NSMutableArray alloc] init];
-//    }
-//    [self.todoItems insertObject:[NSDate date] atIndex:0];
-//    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-//    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
 
@@ -117,10 +123,20 @@
     return YES;
 }
 
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
+    ToDoItem *todoItem = self.todoItems[sourceIndexPath.row];
+    [self.todoItems removeObjectAtIndex:sourceIndexPath.row];
+    [self.todoItems insertObject:todoItem atIndex:destinationIndexPath.row];
+}
+
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        [self.objects removeObjectAtIndex:indexPath.row];
+        [self.todoItems removeObjectAtIndex:indexPath.row];
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
