@@ -10,11 +10,12 @@
 
 @implementation ToDoItem
 
-- (instancetype) initWithTitle:(NSString *)title todoDescription:(NSString *)todoDescription priorityNumber:(NSInteger)priorityNuber isCompleted:(BOOL) isCompleted {
+- (instancetype) initWithTitle:(NSString *)title todoDescription:(NSString *)todoDescription priorityNumber:(NSInteger)priorityNuber deadline:(NSDate *)deadline isCompleted:(BOOL) isCompleted {
     if (self = [super init]) {
         _title = title;
         _todoDescription = todoDescription;
         _priorityNumber = priorityNuber;
+        _deadline = deadline;
         _isCompleted = isCompleted;
     }
     return self;

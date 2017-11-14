@@ -25,10 +25,10 @@
 - (NSMutableArray<ToDoItem *> *)todoItems {
     if (_todoItems == nil) {
         _todoItems = [[NSMutableArray alloc] init];
-        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Finish Assignment" todoDescription:@"Complete the EveryDo Assignment for LHL" priorityNumber:1 isCompleted:NO]];
-        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Run Errands" todoDescription:@"Go to the Grocery Store" priorityNumber:2 isCompleted:NO]];
-        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Clean Up Apartment" todoDescription:@"Wash Dishes and Fold Laundry" priorityNumber:3 isCompleted:NO]];
-        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Play Video Games" todoDescription:@"Play Call of Duty and NBA 2k18" priorityNumber:4 isCompleted:YES]];
+        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Finish Assignment" todoDescription:@"Complete the EveryDo Assignment for LHL" priorityNumber:1 deadline:[NSDate dateWithTimeInterval:604800 sinceDate:[NSDate date]] isCompleted:NO]];
+        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Run Errands" todoDescription:@"Go to the Grocery Store" priorityNumber:2 deadline:[NSDate dateWithTimeInterval:1209600 sinceDate:[NSDate date]] isCompleted:NO]];
+        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Clean Up Apartment" todoDescription:@"Wash Dishes and Fold Laundry" priorityNumber:3 deadline:[NSDate dateWithTimeInterval:809650 sinceDate:[NSDate date]] isCompleted:NO]];
+                [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Play Video Games" todoDescription:@"Play Call of Duty and NBA 2k18" priorityNumber:4 deadline:[NSDate dateWithTimeInterval:200000 sinceDate:[NSDate date]] isCompleted:YES]];
     }
     return _todoItems;
 }
@@ -107,12 +107,22 @@
         cell.descriptionLabel.attributedText = attributedDescriptionString;
         cell.descriptionLabel.textColor = [UIColor redColor];
         cell.priorityLabel.text = [NSString stringWithFormat:@"%ld",todoItem.priorityNumber];
+        
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd"];
+        NSString *date = [dateFormatter stringFromDate:todoItem.deadline];
+        cell.dueDateLabel.text = [NSString stringWithFormat:@"Deadline: %@", date];
     } else {
         cell.titleLabel.text = todoItem.title;
         cell.titleLabel.textColor = [UIColor blackColor];
         cell.descriptionLabel.text = todoItem.todoDescription;
         cell.descriptionLabel.textColor = [UIColor blackColor];
         cell.priorityLabel.text = [NSString stringWithFormat:@"%ld",todoItem.priorityNumber];
+        
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd"];
+        NSString *date = [dateFormatter stringFromDate:todoItem.deadline];
+        cell.dueDateLabel.text = [NSString stringWithFormat:@"Deadline: %@", date];
     }
     return cell;
 }

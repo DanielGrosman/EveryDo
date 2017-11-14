@@ -20,7 +20,7 @@
 }
 
 - (IBAction)doneButtonWasTapped:(id)sender {
-    ToDoItem *newToDo = [[ToDoItem alloc] initWithTitle:self.titleTextField.text todoDescription:self.descTextField.text priorityNumber:[self.priorityTextField.text intValue] isCompleted:NO];
+    ToDoItem *newToDo = [[ToDoItem alloc] initWithTitle:self.titleTextField.text todoDescription:self.descTextField.text priorityNumber:[self.priorityTextField.text intValue] deadline:nil isCompleted:NO];
     [self.delegate addNew:newToDo];
     [self.navigationController popToRootViewControllerAnimated:YES];
 }
