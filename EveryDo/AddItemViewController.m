@@ -25,5 +25,12 @@
     [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
+- (IBAction)wasTapped:(UITapGestureRecognizer *)sender {
+    [self.titleTextField resignFirstResponder];
+    [self.descTextField resignFirstResponder];
+    [self.priorityTextField resignFirstResponder];
+}
+
+
 
 @end

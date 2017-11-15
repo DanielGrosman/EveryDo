@@ -14,9 +14,9 @@
 
 @interface MasterViewController () <UITableViewDataSource, AddNewViewControllerDelegate>
 
-
 @property (strong, nonatomic) NSMutableArray<ToDoItem *> *todoItems;
 @property (strong, nonatomic) NSMutableArray<ToDoItem *> *completedItems;
+@property (nonatomic) UISwipeGestureRecognizer *swipeCompleted;
 
 @end
 
@@ -25,7 +25,7 @@
 - (NSMutableArray<ToDoItem *> *)todoItems {
     if (_todoItems == nil) {
         _todoItems = [[NSMutableArray alloc] init];
-        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Finish Assignment" todoDescription:@"Complete the EveryDo Assignment for LHL" priorityNumber:1 deadline:[NSDate dateWithTimeInterval:604800 sinceDate:[NSDate date]] isCompleted:NO]];
+        [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Finish Assignment" todoDescription:@"Complete the EveryDo Assignment" priorityNumber:1 deadline:[NSDate dateWithTimeInterval:604800 sinceDate:[NSDate date]] isCompleted:NO]];
         [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Run Errands" todoDescription:@"Go to the Grocery Store" priorityNumber:2 deadline:[NSDate dateWithTimeInterval:1209600 sinceDate:[NSDate date]] isCompleted:NO]];
         [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Clean Up Apartment" todoDescription:@"Wash Dishes and Fold Laundry" priorityNumber:3 deadline:[NSDate dateWithTimeInterval:809650 sinceDate:[NSDate date]] isCompleted:NO]];
         [_todoItems addObject:[[ToDoItem alloc] initWithTitle:@"Play Video Games" todoDescription:@"Play Call of Duty and NBA 2k18" priorityNumber:4 deadline:[NSDate dateWithTimeInterval:200000 sinceDate:[NSDate date]] isCompleted:NO]];
@@ -40,30 +40,28 @@
     return _completedItems;
 }
 
-
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(saveNewItem:)];
     self.navigationItem.rightBarButtonItem = addButton;
     
-    UISwipeGestureRecognizer *swipeCompleted = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(itemWasSwiped:)];
-    [self.tableView addGestureRecognizer:swipeCompleted];
+    self.swipeCompleted = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(itemWasSwiped:)];
+    [self.tableView addGestureRecognizer:self.swipeCompleted];
 }
 
 -(void) itemWasSwiped: (UISwipeGestureRecognizer *) sender {
+    
     CGPoint location = [sender locationInView:self.tableView];
     NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:location];
-    ToDoItem *todoItem = self.todoItems[indexPath.row];
-    
-    todoItem.isCompleted = YES;
-    todoItem.priorityNumber = 0;
-    
-    [self.todoItems removeObject:todoItem];
-    [self.completedItems addObject:todoItem];
-    
-    [self.tableView reloadData];
+    if (indexPath.section == 0){
+        ToDoItem *todoItem = self.todoItems[indexPath.row];
+        todoItem.isCompleted = YES;
+        todoItem.priorityNumber = 0;
+        [self.todoItems removeObject:todoItem];
+        [self.completedItems addObject:todoItem];
+        [self.tableView reloadData];
+    }
 }
 
 - (void)addNew:(ToDoItem *)newToDo {
@@ -73,14 +71,9 @@
     [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-}
-
-
 - (void)saveNewItem:(id)sender {
     [self performSegueWithIdentifier:@"AddToDo" sender:self];
 }
-
 
 #pragma mark - Segues
 
@@ -95,7 +88,6 @@
         [segue.destinationViewController setDelegate:self];
     }
 }
-
 
 #pragma mark - Table View
 
@@ -134,11 +126,9 @@
         ToDoItem *completedItem = self.completedItems[indexPath.row];
         NSDictionary* attributes = @{NSStrikethroughStyleAttributeName: [NSNumber numberWithInt:NSUnderlineStyleSingle]};
         NSAttributedString* attributedTitleString = [[NSAttributedString alloc] initWithString:completedItem.title attributes:attributes];
-        NSAttributedString* attributedDescriptionString = [[NSAttributedString alloc] initWithString:completedItem.todoDescription attributes:attributes];
         cell.titleLabel.attributedText = attributedTitleString;
         cell.titleLabel.textColor = [UIColor redColor];
-        cell.descriptionLabel.attributedText = attributedDescriptionString;
-        cell.descriptionLabel.textColor = [UIColor redColor];
+        cell.descriptionLabel.text = completedItem.todoDescription;
         cell.priorityLabel.text = [NSString stringWithFormat:@"%ld",completedItem.priorityNumber];
         
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
@@ -147,9 +137,9 @@
         cell.dueDateLabel.text = [NSString stringWithFormat:@"Deadline: %@", date];
     }
     if (indexPath.section==0) {
-            ToDoItem *todoItem = self.todoItems[indexPath.row];
+        ToDoItem *todoItem = self.todoItems[indexPath.row];
         cell.titleLabel.text = todoItem.title;
-        cell.titleLabel.textColor = [UIColor blackColor];
+        cell.titleLabel.textColor = [UIColor blueColor];
         cell.descriptionLabel.text = todoItem.todoDescription;
         cell.descriptionLabel.textColor = [UIColor blackColor];
         cell.priorityLabel.text = [NSString stringWithFormat:@"%ld",todoItem.priorityNumber];
@@ -175,18 +165,31 @@
 }
 
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
-    ToDoItem *todoItem = self.todoItems[sourceIndexPath.row];
-    [self.todoItems removeObjectAtIndex:sourceIndexPath.row];
-    [self.todoItems insertObject:todoItem atIndex:destinationIndexPath.row];
+    
+    if (sourceIndexPath.section == 0){
+        ToDoItem *todoItem = self.todoItems[sourceIndexPath.row];
+        [self.todoItems removeObjectAtIndex:sourceIndexPath.row];
+        [self.todoItems insertObject:todoItem atIndex:destinationIndexPath.row];
+    }
+    if (sourceIndexPath.section == 1) {
+        ToDoItem *completedItem = self.completedItems[sourceIndexPath.row];
+        [self.completedItems removeObjectAtIndex:sourceIndexPath.row];
+        [self.completedItems insertObject:completedItem atIndex:destinationIndexPath.row];
+    }
 }
-
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        [self.todoItems removeObjectAtIndex:indexPath.row];
+        if (indexPath.section == 1) {
+            [self.completedItems removeObjectAtIndex:indexPath.row];
+            
+        }
+        if (indexPath.section==0) {
+            [self.todoItems removeObjectAtIndex:indexPath.row];
+        }
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
+
     }
 }
 
